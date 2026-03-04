@@ -103,7 +103,7 @@ jobs:
           cd ..
           
           # Build Valkey
-          make BUILD_TLS=yes CFLAGS="-D_GNU_SOURCE -Wno-char-subscripts -O0" LDFLAGS="-fno-use-linker-plugin" -j$(nproc)
+          make BUILD_TLS=yes CFLAGS="-D_GNU_SOURCE -Wno-char-subscripts -O0" -j$(nproc)
           
           # Create basic package (without service)
           cd $workspace
@@ -202,7 +202,7 @@ jobs:
           echo '" https://github.com/valkey-windows/valkey-windows  \n\n";' >> asciilogo.h ;
           sed -i 's/all: \(.*\) module_tests$/all: \1/' Makefile ;
           cd .. ;
-          make BUILD_TLS=yes CFLAGS="-D_GNU_SOURCE -Wno-char-subscripts -O0" LDFLAGS="-fno-use-linker-plugin" -j$(nproc) ;
+          make BUILD_TLS=yes CFLAGS="-D_GNU_SOURCE -Wno-char-subscripts -O0" -j$(nproc) ;
           cd $workspace ;
           mkdir -p ${{ env.VALKEY_DIST }}-cygwin ;
           find valkey-${{ env.RELEASE_VERSION }} -mindepth 1 -maxdepth 2 -type f -regex '.*\(\.exe\|\.conf\)' -exec cp -f "{}" "${{ env.VALKEY_DIST }}-cygwin" \; ;
