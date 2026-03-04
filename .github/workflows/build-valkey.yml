@@ -109,7 +109,7 @@ jobs:
           cd $workspace
           mkdir -p ${{ env.VALKEY_DIST }}-msys2
           find valkey-${{ env.RELEASE_VERSION }} -mindepth 1 -maxdepth 2 -type f -regex '.*\(\.exe\|\.conf\)' -exec cp -f "{}" "${{ env.VALKEY_DIST }}-msys2" \;
-          cp README.md README.zh_CN.md start.bat /usr/bin/msys-2.0.dll /usr/bin/msys-crypto-3.dll /usr/bin/msys-ssl-3.dll /usr/bin/msys-gcc_s-seh-1.dll /usr/bin/msys-stdc++-6.dll ${{ env.VALKEY_DIST }}-msys2
+          cp README.md start.bat /usr/bin/msys-2.0.dll /usr/bin/msys-crypto-3.dll /usr/bin/msys-ssl-3.dll /usr/bin/msys-gcc_s-seh-1.dll /usr/bin/msys-stdc++-6.dll ${{ env.VALKEY_DIST }}-msys2
           sed -i 's/pidfile \/var\/run/pidfile ./' ${{ env.VALKEY_DIST }}-msys2/valkey.conf
           zip -q -r ${{ env.VALKEY_DIST }}-msys2.zip ${{ env.VALKEY_DIST }}-msys2
           
@@ -206,7 +206,7 @@ jobs:
           cd $workspace ;
           mkdir -p ${{ env.VALKEY_DIST }}-cygwin ;
           find valkey-${{ env.RELEASE_VERSION }} -mindepth 1 -maxdepth 2 -type f -regex '.*\(\.exe\|\.conf\)' -exec cp -f "{}" "${{ env.VALKEY_DIST }}-cygwin" \; ;
-          cp README.md README.zh_CN.md start.bat /bin/cygcrypto-3.dll /bin/cygwin1.dll /bin/cygssl-3.dll /bin/cygz.dll /bin/cyggcc_s-seh-1.dll /bin/cygstdc++-6.dll /bin/cygiconv-2.dll /bin/cygintl-8.dll ${{ env.VALKEY_DIST }}-cygwin ;
+          cp README.md start.bat /bin/cygcrypto-3.dll /bin/cygwin1.dll /bin/cygssl-3.dll /bin/cygz.dll /bin/cyggcc_s-seh-1.dll /bin/cygstdc++-6.dll /bin/cygiconv-2.dll /bin/cygintl-8.dll ${{ env.VALKEY_DIST }}-cygwin ;
           sed -i 's/pidfile \/var\/run/pidfile ./' ${{ env.VALKEY_DIST }}-cygwin/valkey.conf ;
           zip -q -r ${{ env.VALKEY_DIST }}-cygwin.zip ${{ env.VALKEY_DIST }}-cygwin ;
           cp -r ${{ env.VALKEY_DIST }}-cygwin ${{ env.VALKEY_DIST }}-cygwin-with-Service ;
