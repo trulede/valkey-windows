@@ -1,5 +1,5 @@
 @echo off
-SET REDIS_PATH=%~dp0
+SET VALKEY_PATH=%~dp0
 
 :: BatchGotAdmin
 :-------------------------------------
@@ -21,10 +21,10 @@ if '%errorlevel%' NEQ '0' (
 :gotAdmin
     if exist "%temp%\getadmin.vbs" ( del "%temp%\getadmin.vbs" )
     pushd "%CD%"
-    CD /D "%REDIS_PATH%"
+    CD /D "%VALKEY_PATH%"
 :--------------------------------------
 
-sc stop "Redis"
-sc delete "Redis"
+sc stop "Valkey"
+sc delete "Valkey"
 
 pause

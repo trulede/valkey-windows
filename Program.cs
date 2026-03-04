@@ -1,12 +1,12 @@
 ﻿using System.Diagnostics;
 
-namespace RedisService
+namespace ValkeyService
 {
     class Program
     {
         static void Main(string[] args)
         {
-            string configFilePath = "redis.conf";
+            string configFilePath = "valkey.conf";
 
             if (args.Length > 1 && args[0] == "-c")
             {
@@ -17,7 +17,7 @@ namespace RedisService
                 .UseWindowsService()
                 .ConfigureServices((hostContext, services) =>
                 {
-                    services.AddHostedService(_ => new RedisService(configFilePath));
+                    services.AddHostedService(_ => new ValkeyService(configFilePath));
                 })
                 .Build();
 
@@ -25,18 +25,18 @@ namespace RedisService
         }
     }
 
-    public class RedisService : BackgroundService
+    public class ValkeyService : BackgroundService
     {
         private readonly string configFilePath;
 
-        private Process? redisProcess;
+        private Process? valkeyProcess;
 
-        private string redisServerPath = string.Empty;
+        private string valkeyServerPath = string.Empty;
 
-        private string configPathForRedis = string.Empty;
+        private string configPathForValkey = string.Empty;
 
 
-        public RedisService(string configFilePath)
+        public ValkeyService(string configFilePath)
         {
             this.configFilePath = configFilePath;
         }
@@ -53,16 +53,16 @@ namespace RedisService
             conf = Path.GetFullPath(conf);
 
             var diskSymbol = conf[..conf.IndexOf(":")];
-            configPathForRedis = conf
+            configPathForValkey = conf
                 .Replace(diskSymbol + ":", "/cygdrive/" + diskSymbol)
                 .Replace("\\", "/");
 
-            redisServerPath = Path.Combine(basePath, "redis-server.exe")
+            valkeyServerPath = Path.Combine(basePath, "valkey-server.exe")
                 .Replace("\\", "/");
 
-            string arguments = $"\"{configPathForRedis}\"";
+            string arguments = $"\"{configPathForValkey}\"";
 
-            redisProcess = Process.Start(new ProcessStartInfo(redisServerPath, arguments)
+            valkeyProcess = Process.Start(new ProcessStartInfo(valkeyServerPath, arguments)
             {
                 WorkingDirectory = basePath,
                 UseShellExecute = false
@@ -80,38 +80,38 @@ namespace RedisService
 
         public override async Task StopAsync(CancellationToken cancellationToken)
         {
-            if (redisProcess == null || redisProcess.HasExited)
+            if (valkeyProcess == null || valkeyProcess.HasExited)
                 return;
 
             try
             {
                 await TryGracefulShutdownAsync();
 
-                bool exited = await WaitForExitAsync(redisProcess, 5000);
+                bool exited = await WaitForExitAsync(valkeyProcess, 5000);
 
                 if (!exited)
                 {
-                    redisProcess.Kill(true);
+                    valkeyProcess.Kill(true);
                 }
             }
             catch
             {
-                if (!redisProcess.HasExited)
-                    redisProcess.Kill(true);
+                if (!valkeyProcess.HasExited)
+                    valkeyProcess.Kill(true);
             }
 
-            redisProcess.Dispose();
+            valkeyProcess.Dispose();
         }
 
 
         private async Task TryGracefulShutdownAsync()
         {
-            string redisCliPath = Path.Combine(AppContext.BaseDirectory, "redis-cli.exe");
+            string valkeyCliPath = Path.Combine(AppContext.BaseDirectory, "valkey-cli.exe");
 
-            if (!File.Exists(redisCliPath))
+            if (!File.Exists(valkeyCliPath))
                 return;
 
-            var psi = new ProcessStartInfo(redisCliPath, "SHUTDOWN")
+            var psi = new ProcessStartInfo(valkeyCliPath, "SHUTDOWN")
             {
                 RedirectStandardOutput = true,
                 RedirectStandardError = true
