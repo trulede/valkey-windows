@@ -110,7 +110,7 @@ jobs:
           cd ..
           
           # Build Valkey
-          make BUILD_TLS=yes CFLAGS="-D_GNU_SOURCE -Wno-char-subscripts -O0" FINAL_LIBS="" -j$(nproc)
+          make BUILD_TLS=yes CFLAGS="-D_GNU_SOURCE -Wno-char-subscripts -O0" -j$(nproc)
 
           # FINAL_LIBS="-lrt -lm -ldl -Wl,--no-export-all-symbols"
           # make CFLAGS="-D_GNU_SOURCE -D__attribute__\(x\)=" ...
