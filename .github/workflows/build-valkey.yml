@@ -100,7 +100,7 @@ jobs:
           workspace=$(pwd)
           
           # Prepare source code
-          sed -i 's/__GNU_VISIBLE/1/' /usr/include/dlfcn.h
+          # sed -i 's/__GNU_VISIBLE/1/' /usr/include/dlfcn.h
           tar -xzf valkey-${{ env.RELEASE_VERSION }}.tar.gz
           cd valkey-${{ env.RELEASE_VERSION }}/src && ./mkreleasehdr.sh
           sed -i 's/\"\;/\"/' asciilogo.h
