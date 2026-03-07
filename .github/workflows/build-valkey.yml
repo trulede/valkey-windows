@@ -85,8 +85,15 @@ jobs:
 
       - uses: msys2/setup-msys2@v2
         with:
+          msystem: ucrt64 
           update: true
-          install: gcc make pkg-config libopenssl openssl-devel zip
+          install: >- 
+            mingw-w64-ucrt-x86_64-gcc 
+            make 
+            pkg-config 
+            libopenssl 
+            openssl-devel 
+            zip
           
       - name: Build Valkey with MSYS2
         run: |
