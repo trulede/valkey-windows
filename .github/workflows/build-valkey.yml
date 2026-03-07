@@ -103,7 +103,11 @@ jobs:
           cd ..
           
           # Build Valkey
-          make BUILD_TLS=yes CFLAGS="-D_GNU_SOURCE -Wno-char-subscripts -O0" -j$(nproc)
+          make BUILD_TLS=yes CFLAGS="-D_GNU_SOURCE -Wno-char-subscripts -O0" FINAL_LIBS="-Wl,--no-export-all-symbols" -j$(nproc)
+
+          # FINAL_LIBS="-lrt -lm -ldl -Wl,--no-export-all-symbols"
+          # make CFLAGS="-D_GNU_SOURCE -D__attribute__\(x\)=" ...
+
           
           # Create basic package (without service)
           cd $workspace
@@ -159,7 +163,6 @@ jobs:
             ${{ env.VALKEY_DIST }}-msys2-with-Service.zip
             hashes-msys2.txt
 
-  build-cygwin:
     needs: prepare
     runs-on: windows-latest
     
@@ -255,7 +258,7 @@ jobs:
             hashes-cygwin.txt
 
   release:
-    needs: [prepare, build-msys2, build-cygwin]
+    needs: [prepare, build-msys2]
     runs-on: windows-latest
     
     steps:
