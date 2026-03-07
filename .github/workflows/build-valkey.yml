@@ -100,7 +100,7 @@ jobs:
           workspace=$(pwd)
           
           # Prepare source code
-          # sed -i 's/__GNU_VISIBLE/1/' /usr/include/dlfcn.h
+          sed -i 's/__GNU_VISIBLE/1/' /usr/include/dlfcn.h
           tar -xzf valkey-${{ env.RELEASE_VERSION }}.tar.gz
           cd valkey-${{ env.RELEASE_VERSION }}/src && ./mkreleasehdr.sh
           sed -i 's/\"\;/\"/' asciilogo.h
@@ -110,7 +110,7 @@ jobs:
           cd ..
           
           # Build Valkey
-          make BUILD_TLS=yes CFLAGS="-D_GNU_SOURCE -Wno-char-subscripts -O0" FINAL_LIBS="-Wl,--no-export-all-symbols" -j$(nproc)
+          make BUILD_TLS=yes CFLAGS="-D_GNU_SOURCE -Wno-char-subscripts -O0" FINAL_LIBS="" -j$(nproc)
 
           # FINAL_LIBS="-lrt -lm -ldl -Wl,--no-export-all-symbols"
           # make CFLAGS="-D_GNU_SOURCE -D__attribute__\(x\)=" ...
