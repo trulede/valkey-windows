@@ -107,6 +107,8 @@ jobs:
           echo '" Valkey for Windows Project Home \n"' >> asciilogo.h
           echo '" https://github.com/valkey-windows/valkey-windows  \n\n";' >> asciilogo.h
           sed -i 's/all: \(.*\) module_tests$/all: \1/' Makefile
+          sed -i 's/__attribute__((noinline, weak))/__attribute__((noinline))/g' src/debug.c
+          sed -i 's/__attribute__((noinline, weak))/__attribute__((noinline))/g' src/server.c
           cd ..
           
           # Build Valkey
