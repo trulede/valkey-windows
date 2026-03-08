@@ -216,8 +216,8 @@ jobs:
           echo '" Valkey for Windows Project Home \n"' >> asciilogo.h ;
           echo '" https://github.com/valkey-windows/valkey-windows  \n\n";' >> asciilogo.h ;
           sed -i 's/all: \(.*\) module_tests$/all: \1/' Makefile ;
-          sed -i 's/__attribute__((noinline, weak))/__attribute__((noinline))/g' debug.c
-          sed -i 's/__attribute__((noinline, weak))/__attribute__((noinline))/g' server.c
+          sed -i 's/__attribute__((noinline, weak))/__attribute__((noinline))/g' debug.c ;
+          sed -i 's/__attribute__((noinline, weak))/__attribute__((noinline))/g' server.c ;
           cd .. ;
           make BUILD_TLS=yes CFLAGS="-D_GNU_SOURCE -Wno-char-subscripts -O0" -j$(nproc) ;
           cd $workspace ;
