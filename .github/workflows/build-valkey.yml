@@ -99,7 +99,7 @@ jobs:
         run: |
           workspace=$(pwd)
           
-          # Prepare source code
+          # Prepare source code.
           sed -i 's/__GNU_VISIBLE/1/' /usr/include/dlfcn.h
           tar -xzf valkey-${{ env.RELEASE_VERSION }}.tar.gz
           cd valkey-${{ env.RELEASE_VERSION }}/src && ./mkreleasehdr.sh
@@ -111,12 +111,8 @@ jobs:
           sed -i 's/__attribute__((noinline, weak))/__attribute__((noinline))/g' server.c
           cd ..
           
-          # Build Valkey
+          # Build Valkey.
           make BUILD_TLS=yes CFLAGS="-D_GNU_SOURCE -Wno-char-subscripts -O0" -j$(nproc)
-
-          # FINAL_LIBS="-lrt -lm -ldl -Wl,--no-export-all-symbols"
-          # make CFLAGS="-D_GNU_SOURCE -D__attribute__\(x\)=" ...
-
           
           # Create basic package (without service)
           cd $workspace
@@ -126,7 +122,7 @@ jobs:
           sed -i 's/pidfile \/var\/run/pidfile ./' ${{ env.VALKEY_DIST }}-msys2/valkey.conf
           zip -q -r ${{ env.VALKEY_DIST }}-msys2.zip ${{ env.VALKEY_DIST }}-msys2
           
-          # Create service package
+          # Create service package.
           cp -r ${{ env.VALKEY_DIST }}-msys2 ${{ env.VALKEY_DIST }}-msys2-with-Service
           cp install_valkey_service.bat uninstall_valkey_service.bat publish/* ${{ env.VALKEY_DIST }}-msys2-with-Service/
           zip -q -r ${{ env.VALKEY_DIST }}-msys2-with-Service.zip ${{ env.VALKEY_DIST }}-msys2-with-Service
@@ -172,8 +168,111 @@ jobs:
             ${{ env.VALKEY_DIST }}-msys2-with-Service.zip
             hashes-msys2.txt
 
+  build-cygwin:
+    needs: prepare
+    runs-on: windows-latest
+    
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Download source
+        uses: actions/download-artifact@v4
+        with:
+          name: valkey-source
+      
+      - name: Set environment variables
+        run: |
+          Add-Content -Path $env:GITHUB_ENV -Value "RELEASE_VERSION=${{ needs.prepare.outputs.release_version }}"
+          Add-Content -Path $env:GITHUB_ENV -Value "VALKEY_DIST=${{ needs.prepare.outputs.valkey_dist }}"
+
+      - name: Cache Cygwin packages
+        uses: actions/cache@v4
+        with:
+          path: |
+            C:/cygwin64
+            C:/cygwin64/var/cache
+          key: cygwin-${{ runner.os }}-${{ hashFiles('.github/workflows/build-valkey.yml') }}
+          restore-keys: cygwin-${{ runner.os }}-
+
+      - uses: cygwin/cygwin-install-action@master
+        with:
+          packages: >-
+            make 
+            gcc-core 
+            gcc-g++ 
+            pkg-config 
+            libssl-devel 
+            zip
+          
+      - name: Build Valkey with Cygwin
+        env:
+          CYGWIN_NOWINPATH: 1
+        run: >-
+          workspace=$(pwd) ;
+          sed -i 's/__GNU_VISIBLE/1/' /usr/include/dlfcn.h ;
+          tar -xzf valkey-${{ env.RELEASE_VERSION }}.tar.gz ;
+          cd valkey-${{ env.RELEASE_VERSION }}/src && ./mkreleasehdr.sh ;
+          sed -i 's/\"\;/\"/' asciilogo.h ;
+          echo '" Valkey for Windows Project Home \n"' >> asciilogo.h ;
+          echo '" https://github.com/valkey-windows/valkey-windows  \n\n";' >> asciilogo.h ;
+          sed -i 's/all: \(.*\) module_tests$/all: \1/' Makefile ;
+          sed -i 's/__attribute__((noinline, weak))/__attribute__((noinline))/g' debug.c
+          sed -i 's/__attribute__((noinline, weak))/__attribute__((noinline))/g' server.c
+          cd .. ;
+          make BUILD_TLS=yes CFLAGS="-D_GNU_SOURCE -Wno-char-subscripts -O0" -j$(nproc) ;
+          cd $workspace ;
+          mkdir -p ${{ env.VALKEY_DIST }}-cygwin ;
+          find valkey-${{ env.RELEASE_VERSION }} -mindepth 1 -maxdepth 2 -type f -regex '.*\(\.exe\|\.conf\)' -exec cp -f "{}" "${{ env.VALKEY_DIST }}-cygwin" \; ;
+          cp README.md start.bat /bin/cygcrypto-3.dll /bin/cygwin1.dll /bin/cygssl-3.dll /bin/cygz.dll /bin/cyggcc_s-seh-1.dll /bin/cygstdc++-6.dll /bin/cygiconv-2.dll /bin/cygintl-8.dll ${{ env.VALKEY_DIST }}-cygwin ;
+          sed -i 's/pidfile \/var\/run/pidfile ./' ${{ env.VALKEY_DIST }}-cygwin/valkey.conf ;
+          zip -q -r ${{ env.VALKEY_DIST }}-cygwin.zip ${{ env.VALKEY_DIST }}-cygwin ;
+          cp -r ${{ env.VALKEY_DIST }}-cygwin ${{ env.VALKEY_DIST }}-cygwin-with-Service ;
+          cp install_valkey_service.bat uninstall_valkey_service.bat publish/* ${{ env.VALKEY_DIST }}-cygwin-with-Service/ ;
+          zip -q -r ${{ env.VALKEY_DIST }}-cygwin-with-Service.zip ${{ env.VALKEY_DIST }}-cygwin-with-Service
+        shell: bash
+
+      - name: Verify Cygwin version
+        run: |
+          $VALKEY_CYGWIN_VERSION_INFO=(./${{ env.VALKEY_DIST }}-cygwin-with-Service/valkey-server.exe --version )
+          echo $VALKEY_CYGWIN_VERSION_INFO
+          If ( -not ( $VALKEY_CYGWIN_VERSION_INFO -match "${{ env.RELEASE_VERSION }}" ) ) { 
+            Write-Output "Cygwin verification failed. Expected: ${{ env.RELEASE_VERSION }}, Got: $VALKEY_CYGWIN_VERSION_INFO"
+            exit 1
+          }
+
+      - name: Test Valkey with Cygwin
+        timeout-minutes: 5
+        run: |
+          try {
+            Start-Process -NoNewWindow -FilePath ".\${{ env.VALKEY_DIST }}-cygwin-with-Service\valkey-server.exe"
+            Start-Sleep -Seconds 2
+            $value = .\${{ env.VALKEY_DIST }}-cygwin-with-Service\valkey-cli.exe SET test_key test_value
+            if ($LASTEXITCODE -ne 0) { throw "Failed to set test key" }
+            $value = .\${{ env.VALKEY_DIST }}-cygwin-with-Service\valkey-cli.exe GET test_key
+            if ($value -ne "test_value") { throw "Test failed" }
+          }
+          finally {
+            Stop-Process -Name "valkey-server" -ErrorAction SilentlyContinue
+          }
+
+      - name: Calculate hash values for Cygwin builds
+        run: |
+          'Cygwin Builds Hashes' | Out-File hashes-cygwin.txt
+          '====================' | Out-File -Append hashes-cygwin.txt
+          Get-FileHash .\${{ env.VALKEY_DIST }}-cygwin.zip | Format-List | Out-File -Append hashes-cygwin.txt
+          Get-FileHash .\${{ env.VALKEY_DIST }}-cygwin-with-Service.zip | Format-List | Out-File -Append hashes-cygwin.txt
+      
+      - name: Upload Cygwin builds
+        uses: actions/upload-artifact@v4
+        with:
+          name: valkey-cygwin-builds
+          path: |
+            ${{ env.VALKEY_DIST }}-cygwin.zip
+            ${{ env.VALKEY_DIST }}-cygwin-with-Service.zip
+            hashes-cygwin.txt
+
   release:
-    needs: [prepare, build-msys2]
+    needs: [prepare, build-msys2, build-cygwin]
     runs-on: windows-latest
     
     steps:
