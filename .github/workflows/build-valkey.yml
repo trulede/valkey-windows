@@ -207,31 +207,26 @@ jobs:
       - name: Build Valkey with Cygwin
         env:
           CYGWIN_NOWINPATH: 1
-        run: |
-          workspace=$(pwd)
-          # Prepare source code.
-          # sed -i 's/__GNU_VISIBLE/1/' /usr/include/dlfcn.h
-          tar -xzf valkey-${{ env.RELEASE_VERSION }}.tar.gz
-          cd valkey-${{ env.RELEASE_VERSION }}/src && ./mkreleasehdr.sh
-          sed -i 's/\"\;/\"/' asciilogo.h
-          echo '" Valkey for Windows Project Home \n"' >> asciilogo.h
-          echo '" https://github.com/valkey-windows/valkey-windows  \n\n";' >> asciilogo.h
-          sed -i 's/all: \(.*\) module_tests$/all: \1/' Makefile
-          sed -i 's/__attribute__((noinline, weak))/__attribute__((noinline))/g' debug.c
-          sed -i 's/__attribute__((noinline, weak))/__attribute__((noinline))/g' server.c
-          cd ..
-          # Build Valkey.
-          make BUILD_TLS=yes CFLAGS="-D_GNU_SOURCE -Wno-char-subscripts -O0" -j$(nproc)
-          # Create basic package (without service)
-          cd $workspace
-          mkdir -p ${{ env.VALKEY_DIST }}-cygwin
-          find valkey-${{ env.RELEASE_VERSION }} -mindepth 1 -maxdepth 2 -type f -regex '.*\(\.exe\|\.conf\)' -exec cp -f "{}" "${{ env.VALKEY_DIST }}-cygwin" \;
-          cp README.md start.bat /bin/cygcrypto-3.dll /bin/cygwin1.dll /bin/cygssl-3.dll /bin/cygz.dll /bin/cyggcc_s-seh-1.dll /bin/cygstdc++-6.dll /bin/cygiconv-2.dll /bin/cygintl-8.dll ${{ env.VALKEY_DIST }}-cygwin
-          sed -i 's/pidfile \/var\/run/pidfile ./' ${{ env.VALKEY_DIST }}-cygwin/valkey.conf
-          # Create service package.
-          zip -q -r ${{ env.VALKEY_DIST }}-cygwin.zip ${{ env.VALKEY_DIST }}-cygwin
-          cp -r ${{ env.VALKEY_DIST }}-cygwin ${{ env.VALKEY_DIST }}-cygwin-with-Service
-          cp install_valkey_service.bat uninstall_valkey_service.bat publish/* ${{ env.VALKEY_DIST }}-cygwin-with-Service/
+        run: >-
+          workspace=$(pwd) ;
+          tar -xzf valkey-${{ env.RELEASE_VERSION }}.tar.gz ;
+          cd valkey-${{ env.RELEASE_VERSION }}/src && ./mkreleasehdr.sh ;
+          sed -i 's/\"\;/\"/' asciilogo.h ;
+          echo '" Valkey for Windows Project Home \n"' >> asciilogo.h ;
+          echo '" https://github.com/valkey-windows/valkey-windows  \n\n";' >> asciilogo.h ;
+          sed -i 's/all: \(.*\) module_tests$/all: \1/' Makefile ;
+          sed -i 's/__attribute__((noinline, weak))/__attribute__((noinline))/g' debug.c ;
+          sed -i 's/__attribute__((noinline, weak))/__attribute__((noinline))/g' server.c ;
+          cd .. ;
+          make BUILD_TLS=yes CFLAGS="-D_GNU_SOURCE -Wno-char-subscripts -O0" -j$(nproc) ;
+          cd $workspace ;
+          mkdir -p ${{ env.VALKEY_DIST }}-cygwin ;
+          find valkey-${{ env.RELEASE_VERSION }} -mindepth 1 -maxdepth 2 -type f -regex '.*\(\.exe\|\.conf\)' -exec cp -f "{}" "${{ env.VALKEY_DIST }}-cygwin" \; ;
+          cp README.md start.bat /bin/cygcrypto-3.dll /bin/cygwin1.dll /bin/cygssl-3.dll /bin/cygz.dll /bin/cyggcc_s-seh-1.dll /bin/cygstdc++-6.dll /bin/cygiconv-2.dll /bin/cygintl-8.dll ${{ env.VALKEY_DIST }}-cygwin ;
+          sed -i 's/pidfile \/var\/run/pidfile ./' ${{ env.VALKEY_DIST }}-cygwin/valkey.conf ;
+          zip -q -r ${{ env.VALKEY_DIST }}-cygwin.zip ${{ env.VALKEY_DIST }}-cygwin ;
+          cp -r ${{ env.VALKEY_DIST }}-cygwin ${{ env.VALKEY_DIST }}-cygwin-with-Service ;
+          cp install_valkey_service.bat uninstall_valkey_service.bat publish/* ${{ env.VALKEY_DIST }}-cygwin-with-Service/ ;
           zip -q -r ${{ env.VALKEY_DIST }}-cygwin-with-Service.zip ${{ env.VALKEY_DIST }}-cygwin-with-Service
         shell: bash
 
