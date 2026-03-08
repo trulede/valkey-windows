@@ -19,6 +19,9 @@ on:
         description: "The version of Valkey being built"
         value: ${{ jobs.prepare.outputs.release_version }}
 
+permissions:
+  contents: read
+
 jobs:
   prepare:
     runs-on: windows-latest
@@ -273,6 +276,8 @@ jobs:
   release:
     needs: [prepare, build-msys2, build-cygwin]
     runs-on: windows-latest
+    permissions:
+      contents: write
     
     steps:
       - uses: actions/checkout@v4
