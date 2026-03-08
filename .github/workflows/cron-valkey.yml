@@ -5,6 +5,9 @@ on:
     - cron: '0 1 * * *'  # 每天在 UTC 1:00 (凌晨1点) 运行
   workflow_dispatch:  # 也允许手动触发
 
+permissions:
+  contents: write
+
 jobs:
   check-new-version:
     runs-on: windows-latest
